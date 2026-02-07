@@ -1,6 +1,7 @@
 package com.freetime.sdk.payment.gateway
 
 import com.freetime.sdk.payment.CoinType
+import java.math.BigDecimal
 
 /**
  * Konfiguration für den Händler (Merchant)

@@ -134,7 +134,7 @@ class EthereumPaymentProvider : PaymentInterface {
         txData.addAll(amountWei.toByteArray().toList())
         
         // Data (empty for simple ETH transfer)
-        txData.add(0x80) // RLP prefix for empty string
+        txData.add(0x80.toByte()) // RLP prefix for empty string
         
         return txData.toByteArray()
     }

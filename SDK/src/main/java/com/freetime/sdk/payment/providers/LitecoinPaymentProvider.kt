@@ -115,27 +115,27 @@ class LitecoinPaymentProvider : PaymentInterface {
         var offset = 0
         
         // Version (4 bytes)
-        txData[offset++] = 0x01
-        txData[offset++] = 0x00
-        txData[offset++] = 0x00
-        txData[offset++] = 0x00
+        txData[offset++] = 0x01.toByte()
+        txData[offset++] = 0x00.toByte()
+        txData[offset++] = 0x00.toByte()
+        txData[offset++] = 0x00.toByte()
         
         // Input count (simplified)
-        txData[offset++] = 0x01
+        txData[offset++] = 0x01.toByte()
         
         // Input (simplified - would contain previous output hash and index)
         offset += 32 // Previous tx hash
         offset += 4  // Previous tx output index
-        txData[offset++] = 0x00 // Script sig length (placeholder)
+        txData[offset++] = 0x00.toByte() // Script sig length (placeholder)
         
         // Sequence
-        txData[offset++] = 0xff
-        txData[offset++] = 0xff
-        txData[offset++] = 0xff
-        txData[offset++] = 0xff
+        txData[offset++] = 0xff.toByte()
+        txData[offset++] = 0xff.toByte()
+        txData[offset++] = 0xff.toByte()
+        txData[offset++] = 0xff.toByte()
         
         // Output count
-        txData[offset++] = 0x01
+        txData[offset++] = 0x01.toByte()
         
         // Output value
         val valueBytes = amountSatoshi.toBytes()
@@ -143,20 +143,20 @@ class LitecoinPaymentProvider : PaymentInterface {
         offset += 8
         
         // Output script (simplified)
-        txData[offset++] = 0x19 // Script length
-        txData[offset++] = 0x76 // OP_DUP
-        txData[offset++] = 0xa9 // OP_HASH160
-        txData[offset++] = 0x14 // 20 bytes
+        txData[offset++] = 0x19.toByte() // Script length
+        txData[offset++] = 0x76.toByte() // OP_DUP
+        txData[offset++] = 0xa9.toByte() // OP_HASH160
+        txData[offset++] = 0x14.toByte() // 20 bytes
         // Add recipient address hash (simplified)
         offset += 20
-        txData[offset++] = 0x88 // OP_EQUALVERIFY
-        txData[offset++] = 0xac // OP_CHECKSIG
+        txData[offset++] = 0x88.toByte() // OP_EQUALVERIFY
+        txData[offset++] = 0xac.toByte() // OP_CHECKSIG
         
         // Locktime
-        txData[offset++] = 0x00
-        txData[offset++] = 0x00
-        txData[offset++] = 0x00
-        txData[offset++] = 0x00
+        txData[offset++] = 0x00.toByte()
+        txData[offset++] = 0x00.toByte()
+        txData[offset++] = 0x00.toByte()
+        txData[offset++] = 0x00.toByte()
         
         return txData
     }

@@ -186,7 +186,7 @@ class LoggingPaymentListener : PaymentListener {
     
     override fun onPaymentConfirmed(details: PaymentDetails) {
         println("Zahlung bestätigt: ${details.paymentRequest.id}")
-        println("Betrag: ${details.receivedAmount} ${details.paymentRequest.coinType.symbol}")
+        println("Betrag: ${details.currentBalance} ${details.paymentRequest.coinType.symbol}")
         println("Weiterleitung: ${details.forwardedTxHash}")
     }
     

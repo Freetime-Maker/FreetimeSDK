@@ -1,5 +1,11 @@
 package com.freetime.sdk.payment
 
+import com.freetime.sdk.payment.providers.BitcoinPaymentProvider
+import com.freetime.sdk.payment.providers.EthereumPaymentProvider
+import com.freetime.sdk.payment.providers.LitecoinPaymentProvider
+import com.freetime.sdk.payment.crypto.BitcoinCryptoUtils
+import com.freetime.sdk.payment.crypto.EthereumCryptoUtils
+import com.freetime.sdk.payment.crypto.LitecoinCryptoUtils
 import java.math.BigDecimal
 
 /**

@@ -15,3 +15,6 @@
 local.properties
 .idea
 .vscode
+PUBLISHING_GUIDE.md
+SDK/build
+.kotlin
