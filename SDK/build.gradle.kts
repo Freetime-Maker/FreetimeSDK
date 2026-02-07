@@ -44,8 +44,17 @@ kotlin {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
+    
+    // Cryptography dependencies - removed BouncyCastle for compatibility
+    // implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+    // implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+    
+    // Coroutines for async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
+    
+    // Serialization for JSON parsing
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

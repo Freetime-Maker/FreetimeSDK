@@ -6,6 +6,8 @@ import com.freetime.sdk.payment.providers.LitecoinPaymentProvider
 import com.freetime.sdk.payment.crypto.BitcoinCryptoUtils
 import com.freetime.sdk.payment.crypto.EthereumCryptoUtils
 import com.freetime.sdk.payment.crypto.LitecoinCryptoUtils
+import com.freetime.sdk.payment.conversion.CurrencyConverter
+import com.freetime.sdk.payment.conversion.UsdPaymentGateway
 import java.math.BigDecimal
 
 /**
@@ -123,12 +125,19 @@ class FreetimePaymentSDK {
     }
     
     /**
-     * Validate address format
+     * Create USD Payment Gateway with automatic crypto conversion
      */
-    fun validateAddress(address: String, coinType: CoinType): Boolean {
-        val provider = paymentProviders[coinType]
-            ?: return false
-        
-        return provider.validateAddress(address, coinType)
+    fun createUsdPaymentGateway(
+        merchantWalletAddress: String,
+        merchantCoinType: CoinType
+    ): UsdPaymentGateway {
+        return UsdPaymentGateway(this, merchantWalletAddress, merchantCoinType)
+    }
+    
+    /**
+     * Get currency converter for USD/crypto conversions
+     */
+    fun getCurrencyConverter(): CurrencyConverter {
+        return CurrencyConverter()
     }
 }

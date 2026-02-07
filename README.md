@@ -254,12 +254,98 @@ val gateway = PaymentGateway(
 )
 ```
 
+## USD Payment Gateway - Automatische Konvertierung
+
+Das SDK unterstützt jetzt USD-Zahlungen mit automatischer Konvertierung in Kryptowährungen!
+
+### Features
+
+- **USD Eingabe**: Geben Sie Beträge in US-Dollar an
+- **Automatische Konvertierung**: Echtzeit-Wechselkurse von APIs
+- **Multi-API Support**: CoinGecko, CoinCap mit Fallback
+- **Caching**: 1-Minuten-Cache für Performance
+- **Offline-Fallback**: Mock-Kurse wenn API nicht erreichbar
+
+### USD Payment Gateway Setup
+
+```kotlin
+import com.freetime.sdk.payment.conversion.*
+
+// USD Payment Gateway initialisieren
+val usdGateway = sdk.createUsdPaymentGateway(
+    merchantWalletAddress = "your_wallet_address",
+    merchantCoinType = CoinType.BITCOIN
+)
+
+// USD Zahlung annehmen (automatische Konvertierung)
+val usdPayment = usdGateway.createUsdPaymentRequest(
+    usdAmount = BigDecimal("100.00"), // $100 USD
+    customerReference = "Kunde-12345",
+    description = "Produkt #ABC-123"
+)
+
+println("Zahlen Sie ${usdPayment.cryptoAmount} ${usdPayment.coinType.symbol}")
+println("Entspricht $${usdPayment.usdAmount} USD")
+println("Wechselkurs: $${usdPayment.exchangeRate}")
+```
+
+### Währungsumrechnung
+
+```kotlin
+// Currency Converter für manuelle Konvertierung
+val converter = sdk.getCurrencyConverter()
+
+// USD zu Krypto
+val result = converter.convertUsdToCrypto(
+    usdAmount = BigDecimal("50.00"),
+    coinType = CoinType.BITCOIN
+)
+
+if (result.success) {
+    println("$50.00 USD = ${result.cryptoAmount} BTC")
+}
+
+// Krypto zu USD
+val reverseResult = converter.convertCryptoToUsd(
+    cryptoAmount = BigDecimal("0.001"),
+    coinType = CoinType.BITCOIN
+)
+
+if (reverseResult.success) {
+    println("0.001 BTC = $${reverseResult.usdAmount} USD")
+}
+```
+
+### Wechselkurs-Überwachung
+
+```kotlin
+// Aktuelle Wechselkurse abrufen
+val rates = converter.getAllExchangeRates()
+rates.forEach { (coinType, rate) ->
+    println("1 ${coinType.coinName} = $${rate}")
+}
+```
+
+### API-Unterstützung
+
+**Unterstützte APIs:**
+- **CoinGecko API** (primär, kostenlos)
+- **CoinCap API** (alternativ)
+- **Offline-Fallback** mit Mock-Kursen
+
+**API-Features:**
+- Echtzeit-Wechselkurse
+- Automatische Fehlerbehandlung
+- 1-Minuten-Caching
+- Keine API-Keys erforderlich (CoinGecko)
+
 ## Beispiel-App
 
 Eine vollständige Beispiel-App ist im `examples/` Verzeichnis enthalten, die alle SDK-Funktionen demonstriert:
 
 - `ExampleApp.kt` - Grundlegende SDK-Funktionen
 - `PaymentGatewayExample.kt` - Payment Gateway mit automatischer Weiterleitung
+- `UsdPaymentExample.kt` - USD-Zahlungen mit automatischer Konvertierung
 
 ## Lizenz
 
