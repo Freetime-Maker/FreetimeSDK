@@ -1,5 +1,7 @@
 # Freetime Payment SDK
 
+[![](https://jitpack.io/v/FreetimeMaker/FreetimeSDK.svg)](https://jitpack.io/#FreetimeMaker/FreetimeSDK)
+
 Ein vollständig eigenständiges, Open-Source Multi-Cryptocurrency Payment SDK für Android.
 
 ## Features
