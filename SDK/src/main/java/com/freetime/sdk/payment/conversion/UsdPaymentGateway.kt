@@ -96,7 +96,7 @@ class UsdPaymentGateway(
                 
                 if (conversionResult.success) {
                     val confirmedPayment = ConfirmedUsdPayment(
-                        usdPaymentRequest = usdPaymentRequest,
+                        usdPaymentRequest = usdPayment,
                         receivedUsdAmount = conversionResult.usdAmount!!,
                         receivedCryptoAmount = cryptoDetails.currentBalance,
                         exchangeRate = conversionResult.exchangeRate!!,
@@ -131,7 +131,7 @@ class UsdPaymentGateway(
                 currentCryptoBalance = cryptoDetails?.currentBalance ?: BigDecimal.ZERO,
                 remainingCryptoAmount = cryptoDetails?.remainingAmount ?: pending.cryptoAmount,
                 currentUsdValue = cryptoDetails?.currentBalance?.multiply(pending.exchangeRate) ?: BigDecimal.ZERO,
-                remainingUsdValue = cryptoDetails?.remainingAmount?.multiply(pending.exchangeRate) ?: usdPayment.usdAmount
+                remainingUsdValue = cryptoDetails?.remainingAmount?.multiply(pending.exchangeRate) ?: pending.usdAmount
             )
         }
         

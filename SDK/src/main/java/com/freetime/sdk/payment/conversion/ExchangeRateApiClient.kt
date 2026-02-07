@@ -6,10 +6,6 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * API client for fetching cryptocurrency exchange rates
@@ -22,8 +18,6 @@ interface ExchangeRateApiClient {
  * Default implementation using CoinGecko API (free tier)
  */
 class DefaultExchangeRateApiClient : ExchangeRateApiClient {
-    
-    private val json = Json { ignoreUnknownKeys = true }
     
     override suspend fun getExchangeRates(): Map<CoinType, BigDecimal> {
         return withContext(Dispatchers.IO) {
@@ -50,19 +44,39 @@ class DefaultExchangeRateApiClient : ExchangeRateApiClient {
     
     private fun parseExchangeRates(response: String): Map<CoinType, BigDecimal> {
         return try {
-            val jsonElement = json.parseToJsonElement(response)
-            val jsonObject = jsonElement as JsonObject
+            // Simple JSON parsing without kotlinx.serialization
+            val btcRate = extractPriceFromJson(response, "bitcoin")
+            val ethRate = extractPriceFromJson(response, "ethereum")
+            val ltcRate = extractPriceFromJson(response, "litecoin")
             
             mapOf(
-                CoinType.BITCOIN to jsonObject["bitcoin"]?.jsonObject?.get("usd")?.jsonPrimitive?.content?.toBigDecimal() 
-                    ?: getMockRates()[CoinType.BITCOIN]!!,
-                CoinType.ETHEREUM to jsonObject["ethereum"]?.jsonObject?.get("usd")?.jsonPrimitive?.content?.toBigDecimal()
-                    ?: getMockRates()[CoinType.ETHEREUM]!!,
-                CoinType.LITECOIN to jsonObject["litecoin"]?.jsonObject?.get("usd")?.jsonPrimitive?.content?.toBigDecimal()
-                    ?: getMockRates()[CoinType.LITECOIN]!!
+                CoinType.BITCOIN to btcRate,
+                CoinType.ETHEREUM to ethRate,
+                CoinType.LITECOIN to ltcRate
             )
         } catch (e: Exception) {
             getMockRates()
+        }
+    }
+    
+    private fun extractPriceFromJson(json: String, coinId: String): BigDecimal {
+        try {
+            // Simple string parsing for JSON price extraction
+            val pattern = """"$coinId":\s*\{\s*"usd":\s*([0-9.]+)"""
+            val regex = Regex(pattern)
+            val matchResult = regex.find(json)
+            return matchResult?.groupValues?.get(1)?.toBigDecimal() ?: getMockRates()[getCoinTypeById(coinId)]!!
+        } catch (e: Exception) {
+            return getMockRates()[getCoinTypeById(coinId)]!!
+        }
+    }
+    
+    private fun getCoinTypeById(coinId: String): CoinType {
+        return when (coinId) {
+            "bitcoin" -> CoinType.BITCOIN
+            "ethereum" -> CoinType.ETHEREUM
+            "litecoin" -> CoinType.LITECOIN
+            else -> CoinType.BITCOIN
         }
     }
     
@@ -74,60 +88,6 @@ class DefaultExchangeRateApiClient : ExchangeRateApiClient {
             CoinType.BITCOIN to BigDecimal("43250.75"),  // ~$43,250 per BTC
             CoinType.ETHEREUM to BigDecimal("2280.45"),    // ~$2,280 per ETH  
             CoinType.LITECOIN to BigDecimal("72.85")       // ~$72.85 per LTC
-        )
-    }
-}
-
-/**
- * Alternative API client using CoinCap API
- */
-class CoinCapApiClient : ExchangeRateApiClient {
-    
-    override suspend fun getExchangeRates(): Map<CoinType, BigDecimal> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = URL("https://api.coincap.io/v2/rates")
-                val connection = url.openConnection() as HttpsURLConnection
-                
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("User-Agent", "Freetime-Payment-SDK/1.0")
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
-                
-                val response = connection.inputStream.bufferedReader().use { it.readText() }
-                connection.disconnect()
-                
-                parseCoinCapRates(response)
-            } catch (e: Exception) {
-                getMockRates()
-            }
-        }
-    }
-    
-    private fun parseCoinCapRates(response: String): Map<CoinType, BigDecimal> {
-        return try {
-            val jsonElement = Json { ignoreUnknownKeys = true }.parseToJsonElement(response)
-            val jsonObject = jsonElement as JsonObject
-            val data = jsonObject["data"]?.jsonObject ?: return getMockRates()
-            
-            mapOf(
-                CoinType.BITCOIN to data["bitcoin"]?.jsonObject?.get("rateUsd")?.jsonPrimitive?.content?.toBigDecimal()
-                    ?: getMockRates()[CoinType.BITCOIN]!!,
-                CoinType.ETHEREUM to data["ethereum"]?.jsonObject?.get("rateUsd")?.jsonPrimitive?.content?.toBigDecimal()
-                    ?: getMockRates()[CoinType.ETHEREUM]!!,
-                CoinType.LITECOIN to data["litecoin"]?.jsonObject?.get("rateUsd")?.jsonPrimitive?.content?.toBigDecimal()
-                    ?: getMockRates()[CoinType.LITECOIN]!!
-            )
-        } catch (e: Exception) {
-            getMockRates()
-        }
-    }
-    
-    private fun getMockRates(): Map<CoinType, BigDecimal> {
-        return mapOf(
-            CoinType.BITCOIN to BigDecimal("43250.75"),
-            CoinType.ETHEREUM to BigDecimal("2280.45"),
-            CoinType.LITECOIN to BigDecimal("72.85")
         )
     }
 }

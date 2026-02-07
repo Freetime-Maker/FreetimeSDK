@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.freetime"
-version = "1.0.0"
+version = "1.0.1"
 
 android {
     namespace = "com.freetime.sdk"
@@ -51,9 +51,6 @@ dependencies {
     
     // Coroutines for async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
-    // Serialization for JSON parsing
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
