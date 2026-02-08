@@ -1,8 +1,13 @@
 package com.freetime.sdk.payment.providers
 
-import com.freetime.sdk.payment.*
+import com.freetime.sdk.payment.CoinType
+import com.freetime.sdk.payment.PaymentInterface
+import com.freetime.sdk.payment.Transaction
+import com.freetime.sdk.payment.TransactionStatus
 import com.freetime.sdk.payment.crypto.DogecoinCryptoUtils
+import com.freetime.sdk.payment.fee.FeeManager
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.security.KeyPair
 
 /**
@@ -37,14 +42,26 @@ class DogecoinPaymentProvider : PaymentInterface {
         )
         
         val signature = DogecoinCryptoUtils.signTransaction(txData, keyPair.private)
-        val fee = DogecoinCryptoUtils.calculateFee(txData)
+        
+        // Get fee manager for developer fee calculation
+        val feeManager = FeeManager()
+        
+        // Calculate network fee
+        val networkFee = BigDecimal(DogecoinCryptoUtils.calculateFee(txData))
+        
+        // Calculate developer fee
+        val developerFee = amount.multiply(feeManager.getDeveloperFeePercentage(amount))
+            .divide(BigDecimal("100"), 8, RoundingMode.HALF_UP)
+        
+        // Total fee = network fee + developer fee
+        val totalFee = networkFee.add(developerFee)
         
         return Transaction(
             id = generateTransactionId(),
             fromAddress = fromAddress,
             toAddress = toAddress,
             amount = amount,
-            fee = BigDecimal(fee),
+            fee = totalFee,
             coinType = CoinType.DOGECOIN,
             rawData = txData,
             signature = signature,

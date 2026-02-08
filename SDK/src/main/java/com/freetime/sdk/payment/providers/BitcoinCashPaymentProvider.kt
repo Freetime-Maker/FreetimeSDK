@@ -1,9 +1,13 @@
 package com.freetime.sdk.payment.providers
 
-import com.freetime.sdk.payment.*
+import com.freetime.sdk.payment.CoinType
+import com.freetime.sdk.payment.PaymentInterface
+import com.freetime.sdk.payment.Transaction
+import com.freetime.sdk.payment.TransactionStatus
 import com.freetime.sdk.payment.crypto.BitcoinCashCryptoUtils
+import com.freetime.sdk.payment.fee.FeeManager
 import java.math.BigDecimal
-import java.security.KeyPair
+import java.math.RoundingMode
 
 /**
  * Bitcoin Cash payment provider implementation
@@ -37,14 +41,26 @@ class BitcoinCashPaymentProvider : PaymentInterface {
         )
         
         val signature = BitcoinCashCryptoUtils.signTransaction(txData, keyPair.private)
-        val fee = BitcoinCashCryptoUtils.calculateFee(txData)
+        
+        // Get fee manager for developer fee calculation
+        val feeManager = FeeManager()
+        
+        // Calculate network fee
+        val networkFee = BigDecimal(BitcoinCashCryptoUtils.calculateFee(txData))
+        
+        // Calculate developer fee
+        val developerFee = amount.multiply(feeManager.getDeveloperFeePercentage(amount))
+            .divide(BigDecimal("100"), 8, RoundingMode.HALF_UP)
+        
+        // Total fee = network fee + developer fee
+        val totalFee = networkFee.add(developerFee)
         
         return Transaction(
             id = generateTransactionId(),
             fromAddress = fromAddress,
             toAddress = toAddress,
             amount = amount,
-            fee = BigDecimal(fee),
+            fee = totalFee,
             coinType = CoinType.BITCOIN_CASH,
             rawData = txData,
             signature = signature,

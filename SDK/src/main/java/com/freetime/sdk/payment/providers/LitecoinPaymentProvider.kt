@@ -1,8 +1,13 @@
 package com.freetime.sdk.payment.providers
 
-import com.freetime.sdk.payment.*
+import com.freetime.sdk.payment.CoinType
+import com.freetime.sdk.payment.PaymentInterface
+import com.freetime.sdk.payment.Transaction
+import com.freetime.sdk.payment.TransactionStatus
 import com.freetime.sdk.payment.crypto.LitecoinCryptoUtils
+import com.freetime.sdk.payment.fee.FeeManager
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  * Litecoin payment provider implementation
@@ -46,15 +51,25 @@ class LitecoinPaymentProvider : PaymentInterface {
         // Create transaction data
         val txData = createLitecoinTransactionData(fromAddress, toAddress, amount)
         
-        // Calculate fee
-        val fee = calculateLitecoinFee(txData)
+        // Get fee manager for developer fee calculation
+        val feeManager = FeeManager()
+        
+        // Calculate network fee
+        val networkFee = calculateLitecoinFee(txData)
+        
+        // Calculate developer fee
+        val developerFee = amount.multiply(feeManager.getDeveloperFeePercentage(amount))
+            .divide(BigDecimal("100"), 8, RoundingMode.HALF_UP)
+        
+        // Total fee = network fee + developer fee
+        val totalFee = networkFee.add(developerFee)
         
         return Transaction(
             id = generateTransactionId(txData),
             fromAddress = fromAddress,
             toAddress = toAddress,
             amount = amount,
-            fee = fee,
+            fee = totalFee,
             coinType = coinType,
             rawData = txData
         )
