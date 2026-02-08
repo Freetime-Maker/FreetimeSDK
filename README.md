@@ -1,17 +1,22 @@
-# Freetime Payment SDK
+<div align="center">
+<h1>Freetime Payment SDK</h1>
+</div>
 
-[![](https://jitpack.io/v/FreetimeMaker/FreetimeSDK.svg)](https://jitpack.io/#FreetimeMaker/FreetimeSDK)
+<div align="center">
 
-Ein vollständig eigenständiges, Open-Source Multi-Cryptocurrency Payment SDK für Android.
+[![JitPack](https://jitpack.io/v/FreetimeMaker/FreetimeSDK.svg)](https://jitpack.io/#FreetimeMaker/FreetimeSDK)
+</div>
+A fully on its own, Open-Source Multi-Cryptocurrency Payment SDK for Android.
 
-## Features
+<div align="center">
+<h2>Features</h2>
+</div>
 
 - **Multi-Coin Support**: Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC)
-- **Vollständig eigenständig**: Keine externen Abhängigkeiten oder API-Aufrufe erforderlich
-- **Lokale Kryptographie**: Alle kryptographischen Operationen werden lokal ausgeführt
-- **Wallet Management**: Erstellen und verwalten Sie mehrere Wallets
-- **Transaction Builder**: Erstellen und signieren Sie Transaktionen
-- **Open Source**: Vollständig transparent und überprüfbarer Code
+- **Fully on its own**: No external Dependencies or API-Request required
+- **Local Cryptographie**: All cryptographic Operations will be run locally
+- **Transaction Builder**: Create and sign your Transactions
+- **Open Source**: Fully transparent and  Code
 
 ## Unterstützte Kryptowährungen
 
