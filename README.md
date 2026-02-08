@@ -6,7 +6,10 @@ A completely self-contained, open-source multi-cryptocurrency payment SDK for An
 
 ## Features
 
-- **Multi-Coin Support**: Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC)
+- **Multi-Coin Support**: 9 cryptocurrencies including Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE), Solana (SOL), Polygon (MATIC), Binance Coin (BNB), and Tron (TRX)
+- **Developer Fee System**: Tiered fee structure (0.05% - 0.5%) with app.ncwallet.net-compatible wallets
+- **USD Payment Gateway**: Automatic USD to cryptocurrency conversion with real-time rates
+- **Production-Ready**: Enhanced security, health monitoring, and statistics
 - **Fully Self-Contained**: No external dependencies or API calls required
 - **Local Cryptography**: All cryptographic operations performed locally
 - **Wallet Management**: Create and manage multiple wallets
@@ -20,10 +23,41 @@ A completely self-contained, open-source multi-cryptocurrency payment SDK for An
 | Bitcoin | BTC | 8 |
 | Ethereum | ETH | 18 |
 | Litecoin | LTC | 8 |
+| Bitcoin Cash | BCH | 8 |
+| Dogecoin | DOGE | 8 |
+| Solana | SOL | 9 |
+| Polygon | MATIC | 18 |
+| Binance Coin | BNB | 18 |
+| Tron | TRX | 6 |
 
 ## Installation
 
-Add the SDK library to your Android project:
+Add the SDK library to your Android project using JitPack.io:
+
+### 1. Add the JitPack repository to your root `build.gradle` file:
+
+```gradle
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+### 2. Add the dependency to your app's `build.gradle` file:
+
+```gradle
+dependencies {
+    implementation 'com.github.FreetimeMaker:FreetimeSDK:v1.0.1'
+}
+```
+
+### 3. Sync your project with Gradle files
+
+### Alternative: Local Development
+
+For local development, you can also use:
 
 ```gradle
 dependencies {
@@ -93,6 +127,72 @@ val fee = sdk.getFeeEstimate(
 println("Estimated fee: $fee BTC")
 ```
 
+### 6. Send Cryptocurrency with Developer Fees
+
+```kotlin
+// Send cryptocurrency with automatic fee calculation
+val result = sdk.send(
+    fromAddress = bitcoinWallet.address,
+    toAddress = recipientAddress,
+    amount = BigDecimal("0.1"),
+    coinType = CoinType.BITCOIN
+)
+
+// Display fee breakdown
+println(result.feeBreakdown.getFormattedBreakdown())
+/*
+Transaction Fee Breakdown (BTC):
+Original Amount: 0.10000000 BTC
+Network Fee: 0.00000100 BTC
+Developer Fee (0.5%): 0.00050000 BTC
+Total Fee: 0.00050100 BTC
+Recipient Receives: 0.09949900 BTC
+Developer Wallet: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+*/
+
+// Broadcast the transaction
+val txHash = result.broadcast()
+println("Transaction sent: $txHash")
+```
+
+## Developer Fees
+
+The SDK includes a tiered developer fee structure that automatically adjusts based on transaction amount:
+
+### Fee Structure
+
+| Transaction Amount | Developer Fee | Category |
+|-------------------|---------------|----------|
+| < $10 | 0.5% | Small Transaction |
+| $10 - $100 | 0.3% | Medium Transaction |
+| $100 - $1,000 | 0.2% | Large Transaction |
+| $1,000 - $10,000 | 0.1% | Very Large Transaction |
+| > $10,000 | 0.05% | Whale Transaction |
+
+### Fee Management
+
+```kotlin
+val feeManager = sdk.getFeeManager()
+
+// Get fee percentage for a specific amount
+val feePercentage = feeManager.getDeveloperFeePercentage(BigDecimal("50"))
+println("Fee percentage: $feePercentage%") // 0.3%
+
+// Get fee tier information
+val tier = feeManager.getFeeTier(BigDecimal("50"))
+println("Transaction tier: $tier") // Medium Transaction ($10 - $100)
+
+// Get developer wallet for specific cryptocurrency
+val btcWallet = feeManager.getDeveloperWalletAddress(CoinType.BITCOIN)
+println("BTC Developer Wallet: $btcWallet")
+
+// Update developer wallet for a specific cryptocurrency
+val updatedFeeManager = feeManager.updateDeveloperWallet(
+    CoinType.BITCOIN, 
+    "new_btc_wallet_address"
+)
+```
+
 ## API Reference
 
 ### FreetimePaymentSDK
@@ -103,8 +203,9 @@ The main class for interacting with the payment SDK.
 
 - `createWallet(coinType: CoinType, name: String?): Wallet` - Creates a new wallet
 - `getBalance(address: String): BigDecimal` - Gets the balance of an address
-- `send(fromAddress: String, toAddress: String, amount: BigDecimal, coinType: CoinType): String` - Sends cryptocurrency
+- `send(fromAddress: String, toAddress: String, amount: BigDecimal, coinType: CoinType): TransactionWithFees` - Sends cryptocurrency with fee calculation
 - `getFeeEstimate(...): BigDecimal` - Estimates transaction fee
+- `getFeeManager(): FeeManager` - Gets the fee manager for developer fee configuration
 - `getAllWallets(): List<Wallet>` - Returns all wallets
 - `getWalletsByCoinType(coinType: CoinType): List<Wallet>` - Returns wallets by type
 - `validateAddress(address: String, coinType: CoinType): Boolean` - Validates an address
@@ -125,19 +226,53 @@ Represents a cryptocurrency wallet.
 - `getBalance(paymentProvider: PaymentInterface): BigDecimal` - Check balance
 - `send(toAddress: String, amount: BigDecimal, paymentProvider: PaymentInterface): Transaction` - Send
 
-### Transaction
+### TransactionWithFees
 
-Represents a cryptocurrency transaction.
+Represents a cryptocurrency transaction with fee breakdown.
 
 #### Properties
 
-- `id: String` - Transaction ID
-- `fromAddress: String` - Sender address
-- `toAddress: String` - Recipient address
-- `amount: BigDecimal` - Amount
-- `fee: BigDecimal` - Fee
+- `transaction: Transaction` - The transaction details
+- `feeBreakdown: FeeBreakdown` - Detailed fee information
+
+#### Methods
+
+- `broadcast(): String` - Broadcasts the transaction to the network
+- `getFormattedSummary(): String` - Gets formatted transaction summary
+
+### FeeManager
+
+Manages developer fees and wallet configuration.
+
+#### Methods
+
+- `getDeveloperFeePercentage(amount: BigDecimal): BigDecimal` - Gets fee percentage for amount
+- `getFeeTier(amount: BigDecimal): String` - Gets transaction tier information
+- `getDeveloperWalletAddress(coinType: CoinType): String` - Gets developer wallet for cryptocurrency
+- `getAllDeveloperWallets(): Map<CoinType, String>` - Gets all developer wallets
+- `updateDeveloperWallet(coinType: CoinType, address: String): FeeManager` - Updates developer wallet
+- `updateAllDeveloperWallets(wallets: Map<CoinType, String>): FeeManager` - Updates all developer wallets
+
+### FeeBreakdown
+
+Contains detailed fee information for a transaction.
+
+#### Properties
+
+- `originalAmount: BigDecimal` - Original transaction amount
+- `networkFee: BigDecimal` - Network transaction fee
+- `developerFee: BigDecimal` - Developer fee amount
+- `totalFee: BigDecimal` - Total fee (network + developer)
+- `recipientAmount: BigDecimal` - Amount recipient receives
+- `developerWalletAddress: String` - Developer wallet address
 - `coinType: CoinType` - Cryptocurrency type
-- `status: TransactionStatus` - Transaction status
+- `developerFeePercentage: BigDecimal` - Developer fee percentage
+
+#### Methods
+
+- `getFormattedBreakdown(): String` - Gets formatted fee breakdown
+- `getFeeSummary(): String` - Gets fee summary string
+- `getFeeTier(): String` - Gets transaction tier
 
 ## Security
 
@@ -395,6 +530,8 @@ A complete example app is included in the `examples/` directory that demonstrate
 - `PaymentGatewayExample.kt` - Payment gateway with automatic forwarding
 - `UsdPaymentExample.kt` - USD payments with automatic conversion
 - `ProductionUsdPaymentExample.kt` - Production-ready payment processing
+- `MultiCryptoExample.kt` - Multi-cryptocurrency wallet management
+- `DeveloperFeeExample.kt` - Developer fee calculation and management
 
 ## License
 

@@ -1,9 +1,14 @@
 package com.freetime.sdk.payment.providers
 
-import com.freetime.sdk.payment.*
+import com.freetime.sdk.payment.CoinType
+import com.freetime.sdk.payment.PaymentInterface
+import com.freetime.sdk.payment.Transaction
+import com.freetime.sdk.payment.TransactionStatus
 import com.freetime.sdk.payment.crypto.EthereumCryptoUtils
+import com.freetime.sdk.payment.fee.FeeManager
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 
 /**
  * Ethereum payment provider implementation
@@ -47,15 +52,25 @@ class EthereumPaymentProvider : PaymentInterface {
         // Create Ethereum transaction data
         val txData = createEthereumTransactionData(fromAddress, toAddress, amount)
         
-        // Calculate gas fee
-        val fee = calculateEthereumFee(txData)
+        // Get fee manager for developer fee calculation
+        val feeManager = FeeManager()
+        
+        // Calculate network fee
+        val networkFee = calculateEthereumFee(txData)
+        
+        // Calculate developer fee
+        val developerFee = amount.multiply(feeManager.getDeveloperFeePercentage(amount))
+            .divide(BigDecimal("100"), 18, RoundingMode.HALF_UP)
+        
+        // Total fee = network fee + developer fee
+        val totalFee = networkFee.add(developerFee)
         
         return Transaction(
             id = generateTransactionId(txData),
             fromAddress = fromAddress,
             toAddress = toAddress,
             amount = amount,
-            fee = fee,
+            fee = totalFee,
             coinType = coinType,
             rawData = txData
         )

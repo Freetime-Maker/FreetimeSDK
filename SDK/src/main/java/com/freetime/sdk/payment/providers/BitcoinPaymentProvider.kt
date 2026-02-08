@@ -1,8 +1,13 @@
 package com.freetime.sdk.payment.providers
 
-import com.freetime.sdk.payment.*
+import com.freetime.sdk.payment.CoinType
+import com.freetime.sdk.payment.PaymentInterface
+import com.freetime.sdk.payment.Transaction
+import com.freetime.sdk.payment.TransactionStatus
 import com.freetime.sdk.payment.crypto.BitcoinCryptoUtils
+import com.freetime.sdk.payment.fee.FeeManager
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -50,15 +55,25 @@ class BitcoinPaymentProvider : PaymentInterface {
         // Create transaction data
         val txData = createBitcoinTransactionData(fromAddress, toAddress, amount)
         
-        // Calculate fee (simplified - would be dynamic in real implementation)
-        val fee = calculateBitcoinFee(txData)
+        // Get fee manager for developer fee calculation
+        val feeManager = FeeManager()
+        
+        // Calculate network fee
+        val networkFee = calculateBitcoinFee(txData)
+        
+        // Calculate developer fee
+        val developerFee = amount.multiply(feeManager.getDeveloperFeePercentage(amount))
+            .divide(BigDecimal("100"), 8, RoundingMode.HALF_UP)
+        
+        // Total fee = network fee + developer fee
+        val totalFee = networkFee.add(developerFee)
         
         return Transaction(
             id = generateTransactionId(txData),
             fromAddress = fromAddress,
             toAddress = toAddress,
             amount = amount,
-            fee = fee,
+            fee = totalFee,
             coinType = coinType,
             rawData = txData
         )
