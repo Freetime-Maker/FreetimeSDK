@@ -42,6 +42,42 @@ object CardanoCryptoUtils {
     }
     
     /**
+     * Convert private key string to KeyPair
+     */
+    fun privateKeyToKeyPair(privateKey: String): KeyPair {
+        try {
+            // Remove hex prefix if present
+            val cleanKey = if (privateKey.startsWith("0x")) {
+                privateKey.substring(2)
+            } else {
+                privateKey
+            }
+            
+            // Convert hex string to byte array
+            val keyBytes = cleanKey.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+            
+            // Create private key specification
+            val keySpec = PKCS8EncodedKeySpec(keyBytes)
+            
+            // Generate key pair from private key bytes
+            val keyFactory = KeyFactory.getInstance("EC")
+            val privateKey = keyFactory.generatePrivate(keySpec)
+            
+            // Generate public key from private key
+            val keyGen = KeyPairGenerator.getInstance("EC")
+            val ecSpec = ECGenParameterSpec("secp256k1")
+            keyGen.initialize(ecSpec, SecureRandom())
+            val keyPair = keyGen.generateKeyPair()
+            
+            // Create new key pair with the imported private key and generated public key
+            return KeyPair(keyPair.public, privateKey)
+            
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Invalid private key format for Cardano: ${e.message}")
+        }
+    }
+    
+    /**
      * Sign transaction data
      */
     fun signTransaction(data: ByteArray, privateKey: PrivateKey): ByteArray {
